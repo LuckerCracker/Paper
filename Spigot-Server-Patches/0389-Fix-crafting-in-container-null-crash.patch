@@ -1,0 +1,29 @@
+From f67bab2ba395741af0dae24f2c4bc4082698c6a9 Mon Sep 17 00:00:00 2001
+From: LuckerCracker <luckerxd@yandex.ru>
+Date: Sun, 6 Mar 2022 23:55:49 +0400
+Subject: [PATCH] Fix crafting in container null crash
+
+
+diff --git a/src/main/java/net/minecraft/server/Container.java b/src/main/java/net/minecraft/server/Container.java
+index 3a488ce20..d6cc7af75 100644
+--- a/src/main/java/net/minecraft/server/Container.java
++++ b/src/main/java/net/minecraft/server/Container.java
+@@ -81,7 +81,14 @@ public abstract class Container {
+                 this.items.set(i, itemstack1);
+ 
+                 for (int j = 0; j < this.listeners.size(); ++j) {
+-                    ((ICrafting) this.listeners.get(j)).a(this, i, itemstack1);
++                    ICrafting crafting = this.listeners.get(j);
++
++                    if (crafting == null) {
++                        this.i.forEach(EntityHuman::closeInventory);
++                        return;
++                    }
++
++                    crafting.a(this, i, itemstack1);
+                 }
+             }
+         }
+-- 
+2.32.0.windows.2
+
