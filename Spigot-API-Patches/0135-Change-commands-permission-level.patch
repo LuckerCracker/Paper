@@ -1,0 +1,40 @@
+From 78c208d7321a9285a60068101f4da6f4b6f60d19 Mon Sep 17 00:00:00 2001
+From: LuckerCracker <luckerxd@yandex.ru>
+Date: Sun, 6 Mar 2022 21:36:22 +0400
+Subject: [PATCH] Change commands permission level
+
+
+diff --git a/src/main/java/org/bukkit/command/Command.java b/src/main/java/org/bukkit/command/Command.java
+index 86c78098..5ce07874 100644
+--- a/src/main/java/org/bukkit/command/Command.java
++++ b/src/main/java/org/bukkit/command/Command.java
+@@ -179,7 +179,7 @@ public abstract class Command {
+         }
+ 
+         if (permissionMessage == null) {
+-            target.sendMessage(ChatColor.RED + "I'm sorry, but you do not have permission to perform this command. Please contact the server administrators if you believe that this is in error.");
++            target.sendMessage(ChatColor.GRAY + "У Вас нет доступа к данной команде.");
+         } else if (permissionMessage.length() != 0) {
+             for (String line : permissionMessage.replace("<permission>", permission).split("\n")) {
+                 target.sendMessage(line);
+diff --git a/src/main/java/org/bukkit/util/permissions/CommandPermissions.java b/src/main/java/org/bukkit/util/permissions/CommandPermissions.java
+index 619646ee..475a13a0 100644
+--- a/src/main/java/org/bukkit/util/permissions/CommandPermissions.java
++++ b/src/main/java/org/bukkit/util/permissions/CommandPermissions.java
+@@ -12,10 +12,10 @@ public final class CommandPermissions {
+     public static Permission registerPermissions(Permission parent) {
+         Permission commands = DefaultPermissions.registerPermission(ROOT, "Gives the user the ability to use all CraftBukkit commands", parent);
+ 
+-        DefaultPermissions.registerPermission(PREFIX + "help", "Allows the user to view the vanilla help menu", PermissionDefault.TRUE, commands);
+-        DefaultPermissions.registerPermission(PREFIX + "plugins", "Allows the user to view the list of plugins running on this server", PermissionDefault.TRUE, commands);
++        DefaultPermissions.registerPermission(PREFIX + "help", "Allows the user to view the vanilla help menu", PermissionDefault.OP, commands);
++        DefaultPermissions.registerPermission(PREFIX + "plugins", "Allows the user to view the list of plugins running on this server", PermissionDefault.OP, commands);
+         DefaultPermissions.registerPermission(PREFIX + "reload", "Allows the user to reload the server settings", PermissionDefault.OP, commands);
+-        DefaultPermissions.registerPermission(PREFIX + "version", "Allows the user to view the version of the server", PermissionDefault.TRUE, commands);
++        DefaultPermissions.registerPermission(PREFIX + "version", "Allows the user to view the version of the server", PermissionDefault.OP, commands);
+ 
+         commands.recalculatePermissibles();
+         return commands;
+-- 
+2.32.0.windows.2
+
