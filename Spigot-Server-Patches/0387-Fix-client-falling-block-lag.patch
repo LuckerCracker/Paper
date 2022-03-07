@@ -1,0 +1,31 @@
+From c77fdbdfd8a6b8229bc67af7dc92f906c7a83861 Mon Sep 17 00:00:00 2001
+From: LuckerCracker <luckerxd@yandex.ru>
+Date: Sun, 6 Mar 2022 23:54:39 +0400
+Subject: [PATCH] Fix client falling block lag
+
+
+diff --git a/src/main/java/net/minecraft/server/EntityFallingBlock.java b/src/main/java/net/minecraft/server/EntityFallingBlock.java
+index eeaa625d2..dc59638c5 100644
+--- a/src/main/java/net/minecraft/server/EntityFallingBlock.java
++++ b/src/main/java/net/minecraft/server/EntityFallingBlock.java
+@@ -112,6 +112,17 @@ public class EntityFallingBlock extends Entity {
+                     }
+                 }
+ 
++                MovingObjectPosition movingobjectposition = this.world.rayTrace(new Vec3D(this.lastX, this.lastY, this.lastZ), new Vec3D(this.locX, this.locY, this.locZ), true);
++
++                if(movingobjectposition != null && this.world.getType(movingobjectposition.a()).getMaterial() == Material.WEB) {
++                    if (this.dropItem && this.world.getGameRules().getBoolean("doEntityDrops")) {
++                        this.a(new ItemStack(block, 1, block.getDropData(this.block)), 0.0F);
++                    }
++
++                    this.die();
++                    return;
++                }
++
+                 if (!this.onGround && !flag1) {
+                     if (this.ticksLived > 100 && !this.world.isClientSide && (blockposition.getY() < 1 || blockposition.getY() > 256) || this.ticksLived > 600) {
+                         if (this.dropItem && this.world.getGameRules().getBoolean("doEntityDrops")) {
+-- 
+2.32.0.windows.2
+
