@@ -1,0 +1,59 @@
+From 60c99ccb38e4252ab735a6525567db2633537b64 Mon Sep 17 00:00:00 2001
+From: LuckerCracker <luckerxd@yandex.ru>
+Date: Mon, 7 Mar 2022 14:16:11 +0400
+Subject: [PATCH] Add more scoreboard methods
+
+
+diff --git a/src/main/java/org/bukkit/scoreboard/Scoreboard.java b/src/main/java/org/bukkit/scoreboard/Scoreboard.java
+index 70086109..4915ecf4 100644
+--- a/src/main/java/org/bukkit/scoreboard/Scoreboard.java
++++ b/src/main/java/org/bukkit/scoreboard/Scoreboard.java
+@@ -78,6 +78,16 @@ public interface Scoreboard {
+      */
+     Set<Score> getScores(String entry) throws IllegalArgumentException;
+ 
++    /**
++     * Gets all scores for an objective on this Scoreboard
++     *
++     * @param objective the objective whose scores are being retrieved
++     * @return immutable set of all scores tracked for the objective
++     * @throws IllegalArgumentException if objective is null
++     */
++    Set<Score> getScores(Objective objective)
++        throws IllegalArgumentException;
++
+     /**
+      * Removes all scores for a player on this Scoreboard
+      *
+@@ -97,6 +107,14 @@ public interface Scoreboard {
+      */
+     void resetScores(String entry) throws IllegalArgumentException;
+ 
++    /**
++     * Removes all scores for an entry on this objective
++     *
++     * @param entry the entry to drop all current scores for
++     * @throws IllegalArgumentException if entry is null
++     */
++    void resetScores(String entry, Objective objective)
++        throws IllegalArgumentException;
+     /**
+      * Gets a player's Team on this Scoreboard
+      *
+@@ -161,6 +179,13 @@ public interface Scoreboard {
+      */
+     Set<String> getEntries();
+ 
++    /**
++     * Gets all entries tracked by this objective
++     *
++     * @return immutable set of all tracked entries
++     */
++    Set<String> getEntries(Objective objective);
++
+     /**
+      * Clears any objective in the specified slot.
+      *
+-- 
+2.32.0.windows.2
+
