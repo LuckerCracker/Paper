@@ -1,0 +1,47 @@
+From 39e78be6f35c08d0bbe782b696cacdf0c15235ad Mon Sep 17 00:00:00 2001
+From: LuckerCracker <luckerxd@yandex.ru>
+Date: Wed, 11 May 2022 10:27:44 +0400
+Subject: [PATCH] Fix MC-47080
+
+
+diff --git a/src/main/java/net/minecraft/server/WorldServer.java b/src/main/java/net/minecraft/server/WorldServer.java
+index e545e9764..096b26372 100644
+--- a/src/main/java/net/minecraft/server/WorldServer.java
++++ b/src/main/java/net/minecraft/server/WorldServer.java
+@@ -422,31 +422,10 @@ public class WorldServer extends World implements IAsyncTaskHandler {
+     }
+ 
+     public boolean everyoneDeeplySleeping() {
+-        if (this.Q && !this.isClientSide) {
+-            Iterator iterator = this.players.iterator();
+-
+-            // CraftBukkit - This allows us to assume that some people are in bed but not really, allowing time to pass in spite of AFKers
+-            boolean foundActualSleepers = false;
+-
+-            EntityHuman entityhuman;
+-
+-            do {
+-                if (!iterator.hasNext()) {
+-                    return foundActualSleepers;
+-                }
+-
+-                entityhuman = (EntityHuman) iterator.next();
+-
+-                // CraftBukkit start
+-                if (entityhuman.isDeeplySleeping()) {
+-                    foundActualSleepers = true;
+-                }
+-            } while (!entityhuman.isSpectator() || entityhuman.isDeeplySleeping() || entityhuman.fauxSleeping);
+-            // CraftBukkit end
+-
++        if (this.players.size() == 0 || this.isClientSide || !this.Q) {
+             return false;
+         } else {
+-            return false;
++            return this.players.stream().allMatch(p -> p.isSpectator() || p.isDeeplySleeping() || p.fauxSleeping);
+         }
+     }
+ 
+-- 
+2.32.0.windows.2
+
