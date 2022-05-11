@@ -1,0 +1,556 @@
+From 146b3a3c5a45741d321feacf2e9fec1e76966a5c Mon Sep 17 00:00:00 2001
+From: LuckerCracker <luckerxd@yandex.ru>
+Date: Wed, 11 May 2022 16:17:14 +0400
+Subject: [PATCH] Paper backports
+
+
+diff --git a/src/main/java/net/minecraft/server/EntityLiving.java b/src/main/java/net/minecraft/server/EntityLiving.java
+index de49bccbc..ee9745c5a 100644
+--- a/src/main/java/net/minecraft/server/EntityLiving.java
++++ b/src/main/java/net/minecraft/server/EntityLiving.java
+@@ -1565,6 +1565,8 @@ public abstract class EntityLiving extends Entity {
+         return this.getEquipment(EnumItemSlot.OFFHAND);
+     }
+ 
++    public final ItemStack getItemInHand(EnumHand enumhand) { return this.b(enumhand); } // Paper - OBFHELPER
++
+     public ItemStack b(EnumHand enumhand) {
+         if (enumhand == EnumHand.MAIN_HAND) {
+             return this.getEquipment(EnumItemSlot.MAINHAND);
+diff --git a/src/main/java/net/minecraft/server/EnumDirection.java b/src/main/java/net/minecraft/server/EnumDirection.java
+new file mode 100644
+index 000000000..3a1879fad
+--- /dev/null
++++ b/src/main/java/net/minecraft/server/EnumDirection.java
+@@ -0,0 +1,304 @@
++package net.minecraft.server;
++
++import com.google.common.base.Predicate;
++import com.google.common.collect.Iterators;
++import com.google.common.collect.Maps;
++
++import javax.annotation.Nullable;
++import java.util.Iterator;
++import java.util.Locale;
++import java.util.Map;
++import java.util.Random;
++
++public enum EnumDirection implements INamable {
++
++    DOWN(0, 1, -1, "down", EnumDirection.EnumAxisDirection.NEGATIVE, EnumDirection.EnumAxis.Y, new BaseBlockPosition(0, -1, 0)), UP(1, 0, -1, "up", EnumDirection.EnumAxisDirection.POSITIVE, EnumDirection.EnumAxis.Y, new BaseBlockPosition(0, 1, 0)), NORTH(2, 3, 2, "north", EnumDirection.EnumAxisDirection.NEGATIVE, EnumDirection.EnumAxis.Z, new BaseBlockPosition(0, 0, -1)), SOUTH(3, 2, 0, "south", EnumDirection.EnumAxisDirection.POSITIVE, EnumDirection.EnumAxis.Z, new BaseBlockPosition(0, 0, 1)), WEST(4, 5, 1, "west", EnumDirection.EnumAxisDirection.NEGATIVE, EnumDirection.EnumAxis.X, new BaseBlockPosition(-1, 0, 0)), EAST(5, 4, 3, "east", EnumDirection.EnumAxisDirection.POSITIVE, EnumDirection.EnumAxis.X, new BaseBlockPosition(1, 0, 0));
++
++    private final int g;
++    private final int h;
++    private final int i;
++    private final String j;
++    private final EnumDirection.EnumAxis k;
++    private final EnumDirection.EnumAxisDirection l;
++    private static final EnumDirection[] n = new EnumDirection[6];
++    private static final EnumDirection[] o = new EnumDirection[4];
++    // Paper start
++    private final int adjX;
++    private final int adjY;
++    private final int adjZ;
++    // Paper end
++
++    EnumDirection(int i, int j, int k, String s, EnumDirection.EnumAxisDirection enumdirection_enumaxisdirection, EnumDirection.EnumAxis enumdirection_enumaxis, BaseBlockPosition baseblockposition) {
++        this.g = i;
++        this.i = k;
++        this.h = j;
++        this.j = s;
++        this.k = enumdirection_enumaxis;
++        this.l = enumdirection_enumaxisdirection;
++        // Paper start
++        this.adjX = baseblockposition.getX();
++        this.adjY = baseblockposition.getY();
++        this.adjZ = baseblockposition.getZ();
++        // Paper end
++    }
++
++    public int a() {
++        return this.g;
++    }
++
++    public int get2DRotationValue() {
++        return this.i;
++    }
++
++    public EnumDirection.EnumAxisDirection c() {
++        return this.l;
++    }
++
++    public EnumDirection opposite() {
++        return fromType1(this.h);
++    }
++
++    public EnumDirection e() {
++        switch (this) {
++            case NORTH:
++                return EnumDirection.EAST;
++
++            case EAST:
++                return EnumDirection.SOUTH;
++
++            case SOUTH:
++                return EnumDirection.WEST;
++
++            case WEST:
++                return EnumDirection.NORTH;
++
++            default:
++                throw new IllegalStateException("Unable to get Y-rotated facing of " + this);
++        }
++    }
++
++    public EnumDirection f() {
++        switch (this) {
++            case NORTH:
++                return EnumDirection.WEST;
++
++            case EAST:
++                return EnumDirection.NORTH;
++
++            case SOUTH:
++                return EnumDirection.EAST;
++
++            case WEST:
++                return EnumDirection.SOUTH;
++
++            default:
++                throw new IllegalStateException("Unable to get CCW facing of " + this);
++        }
++    }
++
++    public int getAdjacentX() {
++        return this.adjX; // Paper
++    }
++
++    public int getAdjacentY() {
++        return this.adjY; // Paper
++    }
++
++    public int getAdjacentZ() {
++        return this.adjZ; // Paper
++    }
++
++    public String j() {
++        return this.j;
++    }
++
++    public EnumDirection.EnumAxis k() {
++        return this.k;
++    }
++
++    public static EnumDirection fromType1(int i) {
++        return EnumDirection.n[MathHelper.a(i % EnumDirection.n.length)];
++    }
++
++    public static EnumDirection fromType2(int i) {
++        return EnumDirection.o[MathHelper.a(i % EnumDirection.o.length)];
++    }
++
++    public static EnumDirection fromAngle(double d0) {
++        return fromType2(MathHelper.floor(d0 / 90.0D + 0.5D) & 3);
++    }
++
++    public float l() {
++        return (float) ((this.i & 3) * 90);
++    }
++
++    public static EnumDirection a(Random random) {
++        return values()[random.nextInt(values().length)];
++    }
++
++    public String toString() {
++        return this.j;
++    }
++
++    public String getName() {
++        return this.j;
++    }
++
++    public static EnumDirection a(EnumDirection.EnumAxisDirection enumdirection_enumaxisdirection, EnumDirection.EnumAxis enumdirection_enumaxis) {
++        EnumDirection[] aenumdirection = values();
++        int i = aenumdirection.length;
++
++        for (int j = 0; j < i; ++j) {
++            EnumDirection enumdirection = aenumdirection[j];
++
++            if (enumdirection.c() == enumdirection_enumaxisdirection && enumdirection.k() == enumdirection_enumaxis) {
++                return enumdirection;
++            }
++        }
++
++        throw new IllegalArgumentException("No such direction: " + enumdirection_enumaxisdirection + " " + enumdirection_enumaxis);
++    }
++
++    public static EnumDirection a(BlockPosition blockposition, EntityLiving entityliving) {
++        if (Math.abs(entityliving.locX - (double) ((float) blockposition.getX() + 0.5F)) < 2.0D && Math.abs(entityliving.locZ - (double) ((float) blockposition.getZ() + 0.5F)) < 2.0D) {
++            double d0 = entityliving.locY + (double) entityliving.getHeadHeight();
++
++            if (d0 - (double) blockposition.getY() > 2.0D) {
++                return EnumDirection.UP;
++            }
++
++            if ((double) blockposition.getY() - d0 > 0.0D) {
++                return EnumDirection.DOWN;
++            }
++        }
++
++        return entityliving.getDirection().opposite();
++    }
++
++    static {
++        EnumDirection[] aenumdirection = values();
++        int i = aenumdirection.length;
++
++        for (int j = 0; j < i; ++j) {
++            EnumDirection enumdirection = aenumdirection[j];
++
++            EnumDirection.n[enumdirection.g] = enumdirection;
++            if (enumdirection.k().c()) {
++                EnumDirection.o[enumdirection.i] = enumdirection;
++            }
++
++            // EnumDirection.p.put(enumdirection.j().toLowerCase(Locale.ROOT), enumdirection);
++        }
++
++    }
++
++    public enum EnumDirectionLimit implements Predicate<EnumDirection>, Iterable<EnumDirection> {
++
++        HORIZONTAL, VERTICAL;
++
++        EnumDirectionLimit() {
++        }
++
++        public EnumDirection[] a() {
++            switch (this) {
++                case HORIZONTAL:
++                    return new EnumDirection[]{EnumDirection.NORTH, EnumDirection.EAST, EnumDirection.SOUTH, EnumDirection.WEST};
++
++                case VERTICAL:
++                    return new EnumDirection[]{EnumDirection.UP, EnumDirection.DOWN};
++
++                default:
++                    throw new Error("Someone's been tampering with the universe!");
++            }
++        }
++
++        public EnumDirection a(Random random) {
++            EnumDirection[] aenumdirection = this.a();
++
++            return aenumdirection[random.nextInt(aenumdirection.length)];
++        }
++
++        public boolean apply(@Nullable EnumDirection enumdirection) {
++            return enumdirection != null && enumdirection.k().d() == this;
++        }
++
++        public Iterator<EnumDirection> iterator() {
++            return Iterators.forArray(this.a());
++        }
++    }
++
++    public enum EnumAxisDirection {
++
++        POSITIVE(1, "Towards positive"), NEGATIVE(-1, "Towards negative");
++
++        private final int c;
++        private final String d;
++
++        EnumAxisDirection(int i, String s) {
++            this.c = i;
++            this.d = s;
++        }
++
++        public int a() {
++            return this.c;
++        }
++
++        public String toString() {
++            return this.d;
++        }
++    }
++
++    public enum EnumAxis implements Predicate<EnumDirection>, INamable {
++
++        X("x", EnumDirection.EnumDirectionLimit.HORIZONTAL), Y("y", EnumDirection.EnumDirectionLimit.VERTICAL), Z("z", EnumDirection.EnumDirectionLimit.HORIZONTAL);
++
++        private static final Map<String, EnumDirection.EnumAxis> d = Maps.newHashMap();
++        private final String e;
++        private final EnumDirection.EnumDirectionLimit f;
++
++        EnumAxis(String s, EnumDirection.EnumDirectionLimit enumDirectionLimit) {
++            this.e = s;
++            this.f = enumDirectionLimit;
++        }
++
++        public String a() {
++            return this.e;
++        }
++
++        public boolean b() {
++            return this.f == EnumDirection.EnumDirectionLimit.VERTICAL;
++        }
++
++        public boolean c() {
++            return this.f == EnumDirection.EnumDirectionLimit.HORIZONTAL;
++        }
++
++        public String toString() {
++            return this.e;
++        }
++
++        public boolean apply(@Nullable EnumDirection enumdirection) {
++            return enumdirection != null && enumdirection.k() == this;
++        }
++
++        public EnumDirection.EnumDirectionLimit d() {
++            return this.f;
++        }
++
++        public String getName() {
++            return this.e;
++        }
++
++        static {
++            EnumDirection.EnumAxis[] enumAxisValue = values();
++            int i = enumAxisValue.length;
++
++            for (int j = 0; j < i; ++j) {
++                EnumDirection.EnumAxis enumAxis = enumAxisValue[j];
++
++                EnumDirection.EnumAxis.d.put(enumAxis.a().toLowerCase(Locale.ROOT), enumAxis);
++            }
++
++        }
++    }
++}
+diff --git a/src/main/java/net/minecraft/server/MinecraftServer.java b/src/main/java/net/minecraft/server/MinecraftServer.java
+index 3b982f990..a32dce2a6 100644
+--- a/src/main/java/net/minecraft/server/MinecraftServer.java
++++ b/src/main/java/net/minecraft/server/MinecraftServer.java
+@@ -484,6 +484,7 @@ public abstract class MinecraftServer implements ICommandListener, Runnable, IAs
+         // CraftBukkit start
+         if (this.server != null) {
+             this.server.disablePlugins();
++            this.server.waitForAsyncTasksShutdown();
+         }
+         // CraftBukkit end
+         if (this.an() != null) {
+@@ -868,12 +869,23 @@ public abstract class MinecraftServer implements ICommandListener, Runnable, IAs
+ 
+         MinecraftTimings.timeUpdateTimer.startTiming(); // Spigot
+         // Send time updates to everyone, it will get the right time from the world the player is in.
+-        if (this.ticks % 20 == 0) {
+-            for (int i = 0; i < this.getPlayerList().players.size(); ++i) {
+-                EntityPlayer entityplayer = (EntityPlayer) this.getPlayerList().players.get(i);
+-                entityplayer.playerConnection.sendPacket(new PacketPlayOutUpdateTime(entityplayer.world.getTime(), entityplayer.getPlayerTime(), entityplayer.world.getGameRules().getBoolean("doDaylightCycle"))); // Add support for per player time
++        // Paper start - optimize time updates
++        for (final WorldServer world : this.worlds) {
++            final boolean doDaylight = world.getGameRules().getBoolean("doDaylightCycle");
++            final long dayTime = world.getDayTime();
++            long worldTime = world.getTime();
++            final PacketPlayOutUpdateTime worldPacket = new PacketPlayOutUpdateTime(worldTime, dayTime, doDaylight);
++            for (EntityHuman entityhuman : world.players) {
++                if (!(entityhuman instanceof EntityPlayer) || (ticks + entityhuman.getId()) % 20 != 0) {
++                    continue;
++                }
++                EntityPlayer entityplayer = (EntityPlayer) entityhuman;
++                long playerTime = entityplayer.getPlayerTime();
++                PacketPlayOutUpdateTime packet = (playerTime == dayTime) ? worldPacket : new PacketPlayOutUpdateTime(worldTime, playerTime, doDaylight);
++                entityplayer.playerConnection.sendPacket(packet); // Add support for per player time
+             }
+         }
++        // Paper end
+         MinecraftTimings.timeUpdateTimer.stopTiming(); // Spigot
+ 
+         int i;
+diff --git a/src/main/java/net/minecraft/server/NBTTagCompound.java b/src/main/java/net/minecraft/server/NBTTagCompound.java
+index 82c2537b3..d21d9319a 100644
+--- a/src/main/java/net/minecraft/server/NBTTagCompound.java
++++ b/src/main/java/net/minecraft/server/NBTTagCompound.java
+@@ -15,6 +15,8 @@ import java.util.Set;
+ import java.util.UUID;
+ import java.util.regex.Pattern;
+ import javax.annotation.Nullable;
++
++import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+ import org.apache.logging.log4j.LogManager;
+ import org.apache.logging.log4j.Logger;
+ 
+@@ -22,9 +24,15 @@ public class NBTTagCompound extends NBTBase {
+ 
+     private static final Logger b = LogManager.getLogger();
+     private static final Pattern c = Pattern.compile("[A-Za-z0-9._+-]+");
+-    public final Map<String, NBTBase> map = Maps.newHashMap(); // Paper
++    public final Map<String, NBTBase> map; // Paper
++
++    public NBTTagCompound() {
++        this(new Object2ObjectOpenHashMap<>(8, 0.8f)); // Paper - reduce memory footprint of NBTTagCompound
++    }
+ 
+-    public NBTTagCompound() {}
++    protected NBTTagCompound(Map<String, NBTBase> map) {
++        this.map = map;
++    }
+ 
+     void write(DataOutput dataoutput) throws IOException {
+         Iterator iterator = this.map.keySet().iterator();
+@@ -302,19 +310,19 @@ public class NBTTagCompound extends NBTBase {
+ 
+     public String toString() {
+         StringBuilder stringbuilder = new StringBuilder("{");
+-        Object object = this.map.keySet();
++        Collection<String> collection = this.map.keySet();
+ 
+         if (NBTTagCompound.b.isDebugEnabled()) {
+-            ArrayList arraylist = Lists.newArrayList(this.map.keySet());
++            ArrayList<String> list = Lists.newArrayList(this.map.keySet());
+ 
+-            Collections.sort(arraylist);
+-            object = arraylist;
++            Collections.sort(list);
++            collection = list;
+         }
+ 
+         String s;
+ 
+-        for (Iterator iterator = ((Collection) object).iterator(); iterator.hasNext(); stringbuilder.append(s(s)).append(':').append(this.map.get(s))) {
+-            s = (String) iterator.next();
++        for (Iterator<String> iterator = collection.iterator(); iterator.hasNext(); stringbuilder.append(s(s)).append(':').append(this.map.get(s))) {
++            s = iterator.next();
+             if (stringbuilder.length() != 1) {
+                 stringbuilder.append(',');
+             }
+@@ -354,16 +362,17 @@ public class NBTTagCompound extends NBTBase {
+     }
+ 
+     public NBTTagCompound g() {
+-        NBTTagCompound nbttagcompound = new NBTTagCompound();
+-        Iterator iterator = this.map.keySet().iterator();
++        // Paper start - reduce memory footprint of NBTTagCompound
++        Object2ObjectOpenHashMap<String, NBTBase> ret = new Object2ObjectOpenHashMap<>(this.map.size(), 0.8f);
++        Iterator<Map.Entry<String, NBTBase>> iterator = (this.map instanceof Object2ObjectOpenHashMap) ? ((Object2ObjectOpenHashMap)this.map).object2ObjectEntrySet().fastIterator() : this.map.entrySet().iterator();
+ 
+         while (iterator.hasNext()) {
+-            String s = (String) iterator.next();
+-
+-            nbttagcompound.set(s, ((NBTBase) this.map.get(s)).clone());
++            Map.Entry<String, NBTBase> entry = iterator.next();
++            ret.put(entry.getKey(), entry.getValue().clone());
+         }
+ 
+-        return nbttagcompound;
++        return new NBTTagCompound(ret);
++        // Paper end - reduce memory footprint of NBTTagCompound
+     }
+ 
+     public boolean equals(Object object) {
+diff --git a/src/main/java/net/minecraft/server/PlayerConnection.java b/src/main/java/net/minecraft/server/PlayerConnection.java
+index 26f1baedb..600f31f64 100644
+--- a/src/main/java/net/minecraft/server/PlayerConnection.java
++++ b/src/main/java/net/minecraft/server/PlayerConnection.java
+@@ -1069,9 +1069,14 @@ public class PlayerConnection implements PacketListenerPlayIn, ITickable {
+ 
+             if (cancelled) {
+                 this.player.getBukkitEntity().updateInventory(); // SPIGOT-2524
+-            } else {
+-                this.player.playerInteractManager.a(this.player, worldserver, itemstack, enumhand);
++                return;
+             }
++
++            // Paper start
++            itemstack = this.player.getItemInHand(enumhand);
++            if (itemstack.isEmpty()) return;
++            // Paper end
++            this.player.playerInteractManager.a(this.player, worldserver, itemstack, enumhand);
+             // CraftBukkit end
+         }
+     }
+diff --git a/src/main/java/net/minecraft/server/World.java b/src/main/java/net/minecraft/server/World.java
+index 2d6712728..da4ea4154 100644
+--- a/src/main/java/net/minecraft/server/World.java
++++ b/src/main/java/net/minecraft/server/World.java
+@@ -2114,20 +2114,19 @@ public abstract class World implements IBlockAccess {
+         }
+     }
+ 
+-    public Map<BlockPosition, TileEntity> capturedTileEntities = Maps.newHashMap();
++    public Map<BlockPosition, TileEntity> capturedTileEntities = Maps.newLinkedHashMap(); // Paper
+     @Nullable
+     public TileEntity getTileEntity(BlockPosition blockposition) {
+         if (blockposition.isInvalidYLocation()) { // Paper
+             return null;
+         } else {
+             // CraftBukkit start
+-            if (capturedTileEntities.containsKey(blockposition)) {
+-                return capturedTileEntities.get(blockposition);
++            TileEntity tileentity = null; // Paper
++            if (!capturedTileEntities.isEmpty() && (tileentity = capturedTileEntities.get(blockposition)) != null) { // Paper
++                return tileentity; // Paper
+             }
+             // CraftBukkit end
+ 
+-            TileEntity tileentity = null;
+-
+             if (this.O) {
+                 tileentity = this.F(blockposition);
+             }
+diff --git a/src/main/java/org/bukkit/craftbukkit/CraftServer.java b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
+index 7c82e18b9..a9e432055 100644
+--- a/src/main/java/org/bukkit/craftbukkit/CraftServer.java
++++ b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
+@@ -808,6 +808,36 @@ public final class CraftServer implements Server {
+         enablePlugins(PluginLoadOrder.POSTWORLD);
+     }
+ 
++    // Paper start
++    public void waitForAsyncTasksShutdown() {
++        int pollCount = 0;
++
++        // Wait for at most 5 seconds for plugins to close their threads
++        while (pollCount < 10*5 && getScheduler().getActiveWorkers().size() > 0) {
++            try {
++                Thread.sleep(100);
++            } catch (InterruptedException e) {}
++
++            pollCount++;
++        }
++
++        List<BukkitWorker> overdueWorkers = getScheduler().getActiveWorkers();
++        for (BukkitWorker worker : overdueWorkers) {
++            Plugin plugin = worker.getOwner();
++            String author = "<NoAuthorGiven>";
++            if (plugin.getDescription().getAuthors().size() > 0) {
++                author = plugin.getDescription().getAuthors().get(0);
++            }
++            getLogger().log(Level.SEVERE, String.format(
++                "Nag author: '%s' of '%s' about the following: %s",
++                author,
++                plugin.getDescription().getName(),
++                "This plugin is not properly shutting down its async tasks when it is being shut down. This task may throw errors during the final shutdown logs and might not complete before process dies."
++            ));
++        }
++    }
++    // Paper end
++
+     @Override
+     public void reloadData() {
+         console.reload();
+diff --git a/src/main/java/org/bukkit/craftbukkit/Main.java b/src/main/java/org/bukkit/craftbukkit/Main.java
+index ae2c51f5d..f79f84d67 100644
+--- a/src/main/java/org/bukkit/craftbukkit/Main.java
++++ b/src/main/java/org/bukkit/craftbukkit/Main.java
+@@ -21,6 +21,7 @@ public class Main {
+     public static boolean useConsole = true;
+ 
+     public static void main(String[] args) {
++        if (System.getProperty("jdk.nio.maxCachedBufferSize") == null) System.setProperty("jdk.nio.maxCachedBufferSize", "262144"); // Paper - cap per-thread NIO cache size
+         // Todo: Installation script
+         OptionParser parser = new OptionParser() {
+             {
+-- 
+2.32.0.windows.2
+
