@@ -1,0 +1,81 @@
+From 7ba8ec4ea3ff94fbc487e9e7a379c9513873b071 Mon Sep 17 00:00:00 2001
+From: LuckerCracker <luckerxd@yandex.ru>
+Date: Wed, 8 Jun 2022 13:28:25 +0400
+Subject: [PATCH] Add tileEntity custom nbt
+
+
+diff --git a/src/main/java/net/minecraft/server/TileEntity.java b/src/main/java/net/minecraft/server/TileEntity.java
+index 54bfbfc6b..771adf3c6 100644
+--- a/src/main/java/net/minecraft/server/TileEntity.java
++++ b/src/main/java/net/minecraft/server/TileEntity.java
+@@ -1,12 +1,12 @@
+ package net.minecraft.server;
+ 
+-import javax.annotation.Nullable;
++import co.aikar.timings.MinecraftTimings;
++import co.aikar.timings.Timing;
+ import org.apache.logging.log4j.LogManager;
+ import org.apache.logging.log4j.Logger;
++import org.bukkit.inventory.InventoryHolder;
+ 
+-import co.aikar.timings.MinecraftTimings; // Paper
+-import co.aikar.timings.Timing; // Paper
+-import org.bukkit.inventory.InventoryHolder; // CraftBukkit
++import javax.annotation.Nullable;
+ 
+ public abstract class TileEntity implements KeyedObject {
+ 
+@@ -14,6 +14,7 @@ public abstract class TileEntity implements KeyedObject {
+     boolean isLoadingStructure = false; // Paper
+     private static final Logger a = LogManager.getLogger();
+     private static final RegistryMaterials<MinecraftKey, Class<? extends TileEntity>> f = new RegistryMaterials();
++    private NBTTagCompound customNBTTagCompound;
+     protected World world;
+     protected BlockPosition position;
+     protected boolean d;
+@@ -22,10 +23,19 @@ public abstract class TileEntity implements KeyedObject {
+ 
+     public TileEntity() {
+         this.position = BlockPosition.ZERO;
++        this.customNBTTagCompound = new NBTTagCompound();
+         this.g = -1;
+     }
+ 
+-    private static void a(String s, Class<? extends TileEntity> oclass) {
++    public NBTTagCompound getCustomNBTTagCompound() {
++        return customNBTTagCompound;
++    }
++
++    public void setCustomNBTTagCompound(NBTTagCompound customNBTTagCompound) {
++        this.customNBTTagCompound = customNBTTagCompound;
++    }
++
++    public static void a(String s, Class<? extends TileEntity> oclass) {
+         TileEntity.f.a(new MinecraftKey(s), oclass);
+     }
+ 
+@@ -75,6 +85,10 @@ public abstract class TileEntity implements KeyedObject {
+ 
+     public void load(NBTTagCompound nbttagcompound) {
+         this.position = new BlockPosition(nbttagcompound.getInt("x"), nbttagcompound.getInt("y"), nbttagcompound.getInt("z"));
++
++        if (nbttagcompound.hasKey("customNBT")) {
++            this.customNBTTagCompound = nbttagcompound.getCompound("customNBT");
++        }
+     }
+ 
+     public NBTTagCompound save(NBTTagCompound nbttagcompound) {
+@@ -91,6 +105,10 @@ public abstract class TileEntity implements KeyedObject {
+             nbttagcompound.setInt("x", this.position.getX());
+             nbttagcompound.setInt("y", this.position.getY());
+             nbttagcompound.setInt("z", this.position.getZ());
++
++            if (this.customNBTTagCompound != null && !this.customNBTTagCompound.isEmpty()) {
++                nbttagcompound.set("customNBT", this.customNBTTagCompound);
++            }
+             return nbttagcompound;
+         }
+     }
+-- 
+2.32.0.windows.2
+
