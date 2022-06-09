@@ -1,0 +1,101 @@
+From 0f77fe597542e2ac883eb661aed13849d382cce1 Mon Sep 17 00:00:00 2001
+From: LuckerCracker <luckerxd@yandex.ru>
+Date: Wed, 8 Jun 2022 18:50:28 +0400
+Subject: [PATCH] Add brewTime speed
+
+
+diff --git a/src/main/java/net/minecraft/server/TileEntityBrewingStand.java b/src/main/java/net/minecraft/server/TileEntityBrewingStand.java
+index 872c42c07..c36850f28 100644
+--- a/src/main/java/net/minecraft/server/TileEntityBrewingStand.java
++++ b/src/main/java/net/minecraft/server/TileEntityBrewingStand.java
+@@ -20,6 +20,8 @@ public class TileEntityBrewingStand extends TileEntityContainer implements ITick
+     private static final int[] g = new int[] { 0, 1, 2, 4};
+     private NonNullList<ItemStack> items;
+     private int brewTime;
++    private int brewTimeSpeed;
++    private int brewTimeSpeedTick;
+     private boolean[] j;
+     private Item k;
+     private String l;
+@@ -91,6 +93,9 @@ public class TileEntityBrewingStand extends TileEntityContainer implements ITick
+ 
+         if (this.fuelLevel <= 0 && itemstack.getItem() == Items.BLAZE_POWDER) {
+             // CraftBukkit start
++            this.brewTimeSpeed = 0;
++            this.brewTimeSpeedTick = 0;
++
+             BrewingStandFuelEvent event = new BrewingStandFuelEvent(world.getWorld().getBlockAt(position.getX(), position.getY(), position.getZ()), CraftItemStack.asCraftMirror(itemstack), 20);
+             this.world.getServer().getPluginManager().callEvent(event);
+ 
+@@ -115,7 +120,16 @@ public class TileEntityBrewingStand extends TileEntityContainer implements ITick
+         this.lastTick = MinecraftServer.currentTick;
+ 
+         if (flag1) {
+-            this.brewTime -= elapsedTicks;
++            if (this.brewTimeSpeed > 0 && this.brewTimeSpeed < elapsedTicks) {
++                if(this.brewTimeSpeedTick - this.brewTimeSpeed > 0)
++                    this.brewTimeSpeedTick += elapsedTicks;
++                else {
++                    this.brewTimeSpeedTick = 0;
++                    this.brewTime -= elapsedTicks;
++                }
++            } else {
++                this.brewTime -= elapsedTicks + this.brewTimeSpeed;
++            }
+             boolean flag2 = this.brewTime <= 0; // == -> <=
+             // CraftBukkit end
+ 
+@@ -194,6 +208,9 @@ public class TileEntityBrewingStand extends TileEntityContainer implements ITick
+         // CraftBukkit start
+         InventoryHolder owner = this.getOwner();
+         if (owner != null) {
++            this.brewTimeSpeed = 0;
++            this.brewTimeSpeedTick = 0;
++
+             BrewEvent event = new BrewEvent(world.getWorld().getBlockAt(position.getX(), position.getY(), position.getZ()), (org.bukkit.inventory.BrewerInventory) owner.getInventory(), this.fuelLevel);
+             org.bukkit.Bukkit.getPluginManager().callEvent(event);
+             if (event.isCancelled()) {
+@@ -320,6 +337,9 @@ public class TileEntityBrewingStand extends TileEntityContainer implements ITick
+         case 1:
+             return this.fuelLevel;
+ 
++        case 2:
++            return this.brewTimeSpeed;
++
+         default:
+             return 0;
+         }
+@@ -327,18 +347,22 @@ public class TileEntityBrewingStand extends TileEntityContainer implements ITick
+ 
+     public void setProperty(int i, int j) {
+         switch (i) {
+-        case 0:
+-            this.brewTime = j;
+-            break;
+-
+-        case 1:
+-            this.fuelLevel = j;
++            case 0:
++                this.brewTime = j;
++                break;
++
++            case 1:
++                this.fuelLevel = j;
++                break;
++            case 2: {
++                this.brewTimeSpeed = j;
++                this.brewTimeSpeedTick = 0;
++            }
+         }
+-
+     }
+ 
+     public int h() {
+-        return 2;
++        return 3;
+     }
+ 
+     public void clear() {
+-- 
+2.32.0.windows.2
+
