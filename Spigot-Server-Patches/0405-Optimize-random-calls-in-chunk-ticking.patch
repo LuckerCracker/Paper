@@ -1,0 +1,79 @@
+From 65304d436e9a665ab6137b655ac9f2a1aa90b960 Mon Sep 17 00:00:00 2001
+From: LuckerCracker <luckerxd@yandex.ru>
+Date: Sun, 26 Jun 2022 13:53:57 +0400
+Subject: [PATCH] Optimize random calls in chunk ticking
+
+
+diff --git a/src/main/java/net/minecraft/server/Chunk.java b/src/main/java/net/minecraft/server/Chunk.java
+index 4060fd274..5e4ac0d0b 100644
+--- a/src/main/java/net/minecraft/server/Chunk.java
++++ b/src/main/java/net/minecraft/server/Chunk.java
+@@ -144,6 +144,7 @@ public class Chunk {
+         // CraftBukkit start
+         this.bukkitChunk = new org.bukkit.craftbukkit.CraftChunk(this);
+         this.chunkKey = ChunkCoordIntPair.a(this.locX, this.locZ);
++        this.lightningTick = this.world.random.nextInt(100000) << 1; // Paper - initialize lightning tick
+     }
+ 
+     public org.bukkit.Chunk bukkitChunk;
+@@ -175,6 +176,18 @@ public class Chunk {
+ 
+     }
+ 
++    // Paper start - instead of using a random every time the chunk is ticked, define when lightning strikes preemptively
++    private int lightningTick;
++    // shouldDoLightning compiles down to 29 bytes, which with the default of 35 byte inlining should guarantee an inline
++    public final boolean shouldDoLightning(Random random) {
++        if (this.lightningTick-- <= 0) {
++            this.lightningTick = random.nextInt(100000) << 1;
++            return true;
++        }
++        return false;
++    }
++    // Paper end
++
+     public boolean a(int i, int j) {
+         return i == this.locX && j == this.locZ;
+     }
+diff --git a/src/main/java/net/minecraft/server/WorldServer.java b/src/main/java/net/minecraft/server/WorldServer.java
+index 096b26372..d16990ba6 100644
+--- a/src/main/java/net/minecraft/server/WorldServer.java
++++ b/src/main/java/net/minecraft/server/WorldServer.java
+@@ -59,6 +59,8 @@ public class WorldServer extends World implements IAsyncTaskHandler {
+     }
+     public final int dimension;
+ 
++    private int currentIceAndSnowTick = 0; protected void resetIceAndSnowTick() { this.currentIceAndSnowTick = this.random.nextInt(16); } // Paper
++
+     // Add env and gen to constructor
+     public WorldServer(MinecraftServer minecraftserver, IDataManager idatamanager, WorldData worlddata, int i, MethodProfiler methodprofiler, org.bukkit.World.Environment env, org.bukkit.generator.ChunkGenerator gen) {
+         super(idatamanager, worlddata, DimensionManager.a(env.getId()).d(), methodprofiler, false, gen, env);
+@@ -463,6 +465,7 @@ public class WorldServer extends World implements IAsyncTaskHandler {
+             boolean flag1 = this.X();
+ 
+             this.methodProfiler.a("pollingChunks");
++            this.resetIceAndSnowTick();
+ 
+             for (Iterator iterator1 = this.manager.b(); iterator1.hasNext(); this.methodProfiler.b()) {
+                 this.methodProfiler.a("getChunk");
+@@ -480,7 +483,7 @@ public class WorldServer extends World implements IAsyncTaskHandler {
+                 BlockPosition blockposition;
+ 
+                 // Paper - Disable thunder
+-                if (!this.paperConfig.disableThunder && flag && flag1 && this.random.nextInt(100000) == 0) {
++                if (!this.paperConfig.disableThunder && flag && flag1 && chunk.shouldDoLightning(this.random)) {
+                     this.l = this.l * 3 + 1013904223;
+                     l = this.l >> 2;
+                     blockposition = this.a(new BlockPosition(j + (l & 15), 0, k + (l >> 8 & 15)));
+@@ -502,7 +505,7 @@ public class WorldServer extends World implements IAsyncTaskHandler {
+                 }
+ 
+                 this.methodProfiler.c("iceandsnow");
+-                if (!this.paperConfig.disableIceAndSnow && this.random.nextInt(16) == 0) { // Paper - Disable ice and snow
++                if (!this.paperConfig.disableIceAndSnow && (currentIceAndSnowTick++ & 15) == 0) { // Paper - Disable ice and snow // Paper - optimize further random ticking
+                     this.l = this.l * 3 + 1013904223;
+                     l = this.l >> 2;
+                     blockposition = this.p(new BlockPosition(j + (l & 15), 0, k + (l >> 8 & 15)));
+-- 
+2.32.0.windows.2
+
