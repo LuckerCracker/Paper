@@ -1,0 +1,27 @@
+From 07f587857b4953d82fede8750d16a48386b9a6ed Mon Sep 17 00:00:00 2001
+From: LuckerCracker <luckerxd@yandex.ru>
+Date: Sun, 26 Jun 2022 11:33:32 +0400
+Subject: [PATCH] Fix Dispenser Shulker Crash
+
+
+diff --git a/src/main/java/net/minecraft/server/DispenserRegistry.java b/src/main/java/net/minecraft/server/DispenserRegistry.java
+index fb1d640cc..127a39c7c 100644
+--- a/src/main/java/net/minecraft/server/DispenserRegistry.java
++++ b/src/main/java/net/minecraft/server/DispenserRegistry.java
+@@ -757,7 +757,12 @@ public class DispenserRegistry {
+                 EnumDirection enumdirection1 = world.isEmpty(blockposition.down()) ? enumdirection : EnumDirection.UP;
+                 IBlockData iblockdata = block.getBlockData().set(BlockShulkerBox.a, enumdirection1);
+ 
+-                world.setTypeUpdate(blockposition, iblockdata);
++                // Paper start - fix Dispenser crashes
++                boolean wasPlaced = world.setTypeUpdate(blockposition, iblockdata);
++                if (!wasPlaced) {
++                    return itemstack;
++                }
++                // Paper end
+                 TileEntity tileentity = world.getTileEntity(blockposition);
+                 ItemStack itemstack1 = itemstack.cloneAndSubtract(1);
+ 
+-- 
+2.32.0.windows.2
+
