@@ -1,0 +1,85 @@
+From f6f7caabf51144b71d2cb55787364bb8c39d1fd4 Mon Sep 17 00:00:00 2001
+From: LuckerCracker <luckerxd@yandex.ru>
+Date: Tue, 23 May 2023 12:49:13 +0400
+Subject: [PATCH] Fix OfflinePlayer UUID
+
+
+diff --git a/src/main/java/com/destroystokyo/paper/profile/CraftPlayerProfile.java b/src/main/java/com/destroystokyo/paper/profile/CraftPlayerProfile.java
+index b151a13c1..c5bce1676 100644
+--- a/src/main/java/com/destroystokyo/paper/profile/CraftPlayerProfile.java
++++ b/src/main/java/com/destroystokyo/paper/profile/CraftPlayerProfile.java
+@@ -151,7 +151,7 @@ public class CraftPlayerProfile implements PlayerProfile {
+                 profile = lookupName ? userCache.getProfile(name) : userCache.getProfileIfCached(name);
+             } else {
+                 // Make an OfflinePlayer using an offline mode UUID since the name has no profile
+-                profile = new GameProfile(UUID.nameUUIDFromBytes(("OfflinePlayer:" + name).getBytes(Charsets.UTF_8)), name);
++                profile = new GameProfile(UUID.nameUUIDFromBytes(("OfflinePlayer:" + name.toLowerCase()).getBytes(Charsets.UTF_8)), name);
+             }
+             if (profile != null) {
+                 this.profile = profile;
+diff --git a/src/main/java/net/minecraft/server/EntityHuman.java b/src/main/java/net/minecraft/server/EntityHuman.java
+index bc6a004b0..eb0a9ecd0 100644
+--- a/src/main/java/net/minecraft/server/EntityHuman.java
++++ b/src/main/java/net/minecraft/server/EntityHuman.java
+@@ -1849,7 +1849,7 @@ public abstract class EntityHuman extends EntityLiving {
+     }
+ 
+     public static UUID d(String s) {
+-        return UUID.nameUUIDFromBytes(("OfflinePlayer:" + s).getBytes(StandardCharsets.UTF_8));
++        return UUID.nameUUIDFromBytes(("OfflinePlayer:" + s.toLowerCase()).getBytes(StandardCharsets.UTF_8));
+     }
+ 
+     public boolean a(ChestLock chestlock) {
+diff --git a/src/main/java/net/minecraft/server/LoginListener.java b/src/main/java/net/minecraft/server/LoginListener.java
+index be43d9292..b169cde69 100644
+--- a/src/main/java/net/minecraft/server/LoginListener.java
++++ b/src/main/java/net/minecraft/server/LoginListener.java
+@@ -119,12 +119,12 @@ public class LoginListener implements PacketLoginInListener, ITickable {
+     public void initUUID()
+     {
+         UUID uuid;
+-        if ( networkManager.spoofedUUID != null )
++        if ( server.getOnlineMode() && networkManager.spoofedUUID != null )
+         {
+             uuid = networkManager.spoofedUUID;
+         } else
+         {
+-            uuid = UUID.nameUUIDFromBytes( ( "OfflinePlayer:" + this.i.getName() ).getBytes( StandardCharsets.UTF_8 ) );
++            uuid = UUID.nameUUIDFromBytes( ( "OfflinePlayer:" + this.i.getName().toLowerCase() ).getBytes( StandardCharsets.UTF_8 ) );
+         }
+ 
+         this.i = new GameProfile( uuid, this.i.getName() );
+@@ -334,7 +334,7 @@ public class LoginListener implements PacketLoginInListener, ITickable {
+     // Spigot end
+ 
+     protected GameProfile a(GameProfile gameprofile) {
+-        UUID uuid = UUID.nameUUIDFromBytes(("OfflinePlayer:" + gameprofile.getName()).getBytes(StandardCharsets.UTF_8));
++        UUID uuid = UUID.nameUUIDFromBytes(("OfflinePlayer:" + gameprofile.getName().toLowerCase()).getBytes(StandardCharsets.UTF_8));
+ 
+         return new GameProfile(uuid, gameprofile.getName());
+     }
+diff --git a/src/main/java/org/bukkit/craftbukkit/CraftServer.java b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
+index a9e432055..4a57e23b4 100644
+--- a/src/main/java/org/bukkit/craftbukkit/CraftServer.java
++++ b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
+@@ -1390,7 +1390,7 @@ public final class CraftServer implements Server {
+             profile = console.getUserCache().getProfile( name );
+         } else {
+             // Make an OfflinePlayer using an offline mode UUID since the name has no profile
+-            profile = new GameProfile(UUID.nameUUIDFromBytes(("OfflinePlayer:" + name).getBytes(Charsets.UTF_8)), name);
++            profile = new GameProfile(UUID.nameUUIDFromBytes(("OfflinePlayer:" + name.toLowerCase()).getBytes(Charsets.UTF_8)), name);
+         }
+         return profile != null ? profile.getId() : null;
+     }
+@@ -1415,7 +1415,7 @@ public final class CraftServer implements Server {
+             // Spigot end
+             if (profile == null) {
+                 // Make an OfflinePlayer using an offline mode UUID since the name has no profile
+-                result = getOfflinePlayer(new GameProfile(UUID.nameUUIDFromBytes(("OfflinePlayer:" + name).getBytes(Charsets.UTF_8)), name));
++                result = getOfflinePlayer(new GameProfile(UUID.nameUUIDFromBytes(("OfflinePlayer:" + name.toLowerCase()).getBytes(Charsets.UTF_8)), name));
+             } else {
+                 // Use the GameProfile even when we get a UUID so we ensure we still have a name
+                 result = getOfflinePlayer(profile);
+-- 
+2.39.0.windows.2
+

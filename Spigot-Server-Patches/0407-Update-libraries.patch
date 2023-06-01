@@ -1,0 +1,49 @@
+From 5c654d8651cdcd1b392211999755afbf1b714181 Mon Sep 17 00:00:00 2001
+From: LuckerCracker <luckerxd@yandex.ru>
+Date: Fri, 24 Feb 2023 18:12:35 +0400
+Subject: [PATCH] Update libraries
+
+
+diff --git a/pom.xml b/pom.xml
+index 82962f702..c37e62c56 100644
+--- a/pom.xml
++++ b/pom.xml
+@@ -32,7 +32,7 @@
+         <dependency>
+             <groupId>io.netty</groupId>
+             <artifactId>netty-all</artifactId>
+-            <version>4.1.24.Final</version>
++            <version>4.1.86.Final</version>
+             <scope>compile</scope>
+         </dependency>
+         <dependency>
+@@ -62,7 +62,7 @@
+         <dependency>
+             <groupId>mysql</groupId>
+             <artifactId>mysql-connector-java</artifactId>
+-            <version>5.1.45</version>
++            <version>8.0.28</version>
+             <scope>runtime</scope>
+         </dependency>
+         <dependency>
+@@ -94,7 +94,7 @@
+         <dependency>
+             <groupId>org.apache.logging.log4j</groupId>
+             <artifactId>log4j-core</artifactId>
+-            <version>2.17.0</version>
++            <version>2.17.1</version>
+             <scope>compile</scope>
+         </dependency>
+ 
+@@ -124,7 +124,7 @@
+         <dependency>
+             <groupId>junit</groupId>
+             <artifactId>junit</artifactId>
+-            <version>4.12</version>
++            <version>4.13.1</version>
+             <scope>test</scope>
+         </dependency>
+         <dependency>
+-- 
+2.39.0.windows.2
+
