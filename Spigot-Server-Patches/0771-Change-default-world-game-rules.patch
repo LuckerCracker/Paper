@@ -1,0 +1,31 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: LuckerCracker <luckerxd@yandex.ru>
+Date: Sun, 15 Oct 2023 15:58:30 +0400
+Subject: [PATCH] Change default world game rules
+
+
+diff --git a/src/main/java/net/minecraft/world/level/GameRules.java b/src/main/java/net/minecraft/world/level/GameRules.java
+index 3783f3a83e3e70d77cf0fa1021f62a89c5950af5..010e20dab16bd19da5fe85fa7a489807bb6f2d31 100644
+--- a/src/main/java/net/minecraft/world/level/GameRules.java
++++ b/src/main/java/net/minecraft/world/level/GameRules.java
+@@ -34,7 +34,7 @@ public class GameRules {
+         return gamerules_gamerulekey.a;
+     }));
+     public static final GameRules.GameRuleKey<GameRules.GameRuleBoolean> DO_FIRE_TICK = a("doFireTick", GameRules.GameRuleCategory.UPDATES, GameRules.GameRuleBoolean.b(true));
+-    public static final GameRules.GameRuleKey<GameRules.GameRuleBoolean> MOB_GRIEFING = a("mobGriefing", GameRules.GameRuleCategory.MOBS, GameRules.GameRuleBoolean.b(true));
++    public static final GameRules.GameRuleKey<GameRules.GameRuleBoolean> MOB_GRIEFING = a("mobGriefing", GameRules.GameRuleCategory.MOBS, GameRules.GameRuleBoolean.b(false));
+     public static final GameRules.GameRuleKey<GameRules.GameRuleBoolean> KEEP_INVENTORY = a("keepInventory", GameRules.GameRuleCategory.PLAYER, GameRules.GameRuleBoolean.b(false));
+     public static final GameRules.GameRuleKey<GameRules.GameRuleBoolean> DO_MOB_SPAWNING = a("doMobSpawning", GameRules.GameRuleCategory.SPAWNING, GameRules.GameRuleBoolean.b(true));
+     public static final GameRules.GameRuleKey<GameRules.GameRuleBoolean> DO_MOB_LOOT = a("doMobLoot", GameRules.GameRuleCategory.DROPS, GameRules.GameRuleBoolean.b(true));
+@@ -65,9 +65,9 @@ public class GameRules {
+     public static final GameRules.GameRuleKey<GameRules.GameRuleBoolean> DO_WEATHER_CYCLE = a("doWeatherCycle", GameRules.GameRuleCategory.UPDATES, GameRules.GameRuleBoolean.b(true));
+     public static final GameRules.GameRuleKey<GameRules.GameRuleBoolean> DO_LIMITED_CRAFTING = a("doLimitedCrafting", GameRules.GameRuleCategory.PLAYER, GameRules.GameRuleBoolean.b(false));
+     public static final GameRules.GameRuleKey<GameRules.GameRuleInt> MAX_COMMAND_CHAIN_LENGTH = a("maxCommandChainLength", GameRules.GameRuleCategory.MISC, GameRules.GameRuleInt.b(65536));
+-    public static final GameRules.GameRuleKey<GameRules.GameRuleBoolean> ANNOUNCE_ADVANCEMENTS = a("announceAdvancements", GameRules.GameRuleCategory.CHAT, GameRules.GameRuleBoolean.b(true));
++    public static final GameRules.GameRuleKey<GameRules.GameRuleBoolean> ANNOUNCE_ADVANCEMENTS = a("announceAdvancements", GameRules.GameRuleCategory.CHAT, GameRules.GameRuleBoolean.b(false));
+     public static final GameRules.GameRuleKey<GameRules.GameRuleBoolean> DISABLE_RAIDS = a("disableRaids", GameRules.GameRuleCategory.MOBS, GameRules.GameRuleBoolean.b(false));
+-    public static final GameRules.GameRuleKey<GameRules.GameRuleBoolean> DO_INSOMNIA = a("doInsomnia", GameRules.GameRuleCategory.SPAWNING, GameRules.GameRuleBoolean.b(true));
++    public static final GameRules.GameRuleKey<GameRules.GameRuleBoolean> DO_INSOMNIA = a("doInsomnia", GameRules.GameRuleCategory.SPAWNING, GameRules.GameRuleBoolean.b(false));
+     public static final GameRules.GameRuleKey<GameRules.GameRuleBoolean> DO_IMMEDIATE_RESPAWN = a("doImmediateRespawn", GameRules.GameRuleCategory.PLAYER, GameRules.GameRuleBoolean.b(false, (minecraftserver, gamerules_gameruleboolean) -> {
+         Iterator iterator = minecraftserver.getPlayerList().getPlayers().iterator();
+ 
